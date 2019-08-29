@@ -20,12 +20,16 @@ conda config --add channels conda-forge
 conda config --add channels bioconda
 conda update --yes conda
 
-source activate "$NAME"
+source /opt/conda/bin/activate "$NAME"
 conda install --yes "$CONDA_DEPS"
 
-source deactivate
-conda remove --yes -n "$NAME" --all                                       
+conda deactivate
+conda env remove --yes --name "$NAME"                                     
 # install software
 # extract all cases from test script 
 # run all cases and save the result of each case. 
 # send mail with result
+
+# Remove bioconda_recipe_gen
+cd ..
+sudo rm -r "$NAME"

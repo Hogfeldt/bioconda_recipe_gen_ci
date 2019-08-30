@@ -55,4 +55,4 @@ conda env remove --yes --name "$NAME"
 
 # Remove bioconda_recipe_gen
 cd ..
-sudo rm -r "$NAME"
+rm -rf "$NAME"

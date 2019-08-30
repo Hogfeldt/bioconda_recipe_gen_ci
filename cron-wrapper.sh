@@ -9,7 +9,7 @@
 REPO=https://github.com/Hogfeldt/bioconda_recipe_gen.git
 NAME=$(basename "$REPO" .git)
 CONDA_DEPS="bioconda-utils docker-py"
-PACKAGES=("kallisto" "tn93")
+PACKAGES=("kallisto" "tn93" "htstream" "qfilt" "libdivsufsort" "clever-toolkit")
 TEST_DIR=~/bioconda_recipe_gen_cron_tests/$(date +%Y%m%d)
 META_FILE=$TEST_DIR/test_meta.txt
 

@@ -1,7 +1,6 @@
 import argparse
 import os
-
-from meta_yaml_parser import meta_yaml_to_dict
+import conda_build 
 
 
 def write_candidates_to_file(candidates, filepath):
@@ -38,28 +37,10 @@ def get_all_source_urls(recipes_path):
             meta_yaml_path = "%s/%s/meta.yaml" % (recipes_path, dir)
             if not os.path.isfile(meta_yaml_path):
                 continue
-            name = ""
-            url = ""
-            meta_yaml_dict = meta_yaml_to_dict(meta_yaml_path)
-            if meta_yaml_dict != None:
-                # extract url
-                if (
-                    isinstance(meta_yaml_dict["source"], list)
-                    and "url" in meta_yaml_dict["source"][0]
-                ):
-                    url = meta_yaml_dict["source"][0]["url"]
-                elif "url" in meta_yaml_dict["source"]:
-                    url = meta_yaml_dict["source"]["url"]
-                # extract name
-                if (
-                    isinstance(meta_yaml_dict["package"], list)
-                    and "name" in meta_yaml_dict["package"][0]
-                ):
-                    name = meta_yaml_dict["package"][0]["name"]
-                elif "name" in meta_yaml_dict["package"]:
-                    name = meta_yaml_dict["package"]["name"]
-                # save in packages
-                packages += (name, url)
+            meta_obj = conda_build.api.render(meta_yaml_path)[0][0]
+            name = meta_obj.get_value('package/name')
+            url = meta_obj.get_value('source/url')
+            packages += (name, url)
     return packages
 
 

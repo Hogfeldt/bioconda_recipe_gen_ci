@@ -1,4 +1,7 @@
-def write_candidates_to_file(candidates, filepath) 
+import argparse
+
+
+def write_candidates_to_file(candidates, filepath):
     """ For every candidate extract name, version, source_url, test-commands and 
         test files from recipe and construct a bioconda-recipe-gen command.
         Write the commands to a file.
@@ -30,12 +33,19 @@ def get_all_source_urls(filepath):
 
 
 def main():
-    # Argrument: path to bioconda/recipes
-    recipes_path = ""
+    # Parse arguments
+    parser = argparse.ArgumentParser(
+        description="Script for finding a set of bioconda packages, which are build with CMake and where the bioconda recipe is able to build itself"
+    )
+    parser.add_argument("recipes_path", help="Path to bioconda/recipe folder")
+    args = parser.parse_args()
+
+    # Run workflow
+    recipes_path = args.recipes_path
     source_urls = get_all_source_urls(recipes_path)
     candidates = get_packages_containing_cmakelist_in_root(source_urls)
     candidates = filter_candidates(candidates)
-    write_candidates_to_file(candidates)
+    write_candidates_to_file(candidates, "file_path")
     pass
 
 

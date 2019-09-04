@@ -62,8 +62,8 @@ def dynamic_jinja_to_static_yaml(filename):
 def meta_yaml_to_dict(path):
     try:
         document = open(path, 'r').read()
-        document = toyamel.dynamic_jinja_to_static_yaml(path)
-        return yaml.load(document)
+        document = dynamic_jinja_to_static_yaml(path)
+        return yaml.safe_load(document)
     except yaml.YAMLError as exc:
         print(exc)
         global numExc

@@ -1,6 +1,6 @@
 import argparse
 import os
-import conda_build 
+from bioconda_utils import recipe
 
 
 def write_candidates_to_file(candidates, filepath):
@@ -35,11 +35,17 @@ def get_all_source_urls(recipes_path):
     for subdir, dirs, files in os.walk(recipes_path):
         for dir in dirs:
             meta_yaml_path = "%s/%s/meta.yaml" % (recipes_path, dir)
+            print(meta_yaml_path)
             if not os.path.isfile(meta_yaml_path):
                 continue
-            meta_obj = conda_build.api.render(meta_yaml_path)[0][0]
-            name = meta_obj.get_value('package/name')
-            url = meta_obj.get_value('source/url')
+            current_recipe = recipe.Recipe.from_file(recipes_path, meta_yaml_path)
+            name = current_recipe.name
+            try:
+                url = current_recipe.get('source/url')
+            except:
+                print('%s raised an Error' % name)
+                continue
+                
             packages += (name, url)
     return packages
 

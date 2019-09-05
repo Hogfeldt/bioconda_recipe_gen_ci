@@ -13,23 +13,32 @@ def write_candidates_to_file(candidates, bioconda_recipes_path):
         test files from recipe and construct a bioconda-recipe-gen command.
         Write the commands to a file.
         """
-    for cand in candidates:
-        recipes_path = bioconda_recipes_path + "/recipes"
-        meta_yaml_path = "%s/%s/meta.yaml" % (recipes_path, cand[0])
-        current_recipe = recipe.Recipe.from_file(recipes_path, meta_yaml_path)
+    with open("bioconda_recipe_gen_commands.txt", "w") as cmd_file:
+        for cand in candidates:
+            recipes_path = bioconda_recipes_path + "/recipes"
+            meta_yaml_path = "%s/%s/meta.yaml" % (recipes_path, cand[0])
+            current_recipe = recipe.Recipe.from_file(recipes_path, meta_yaml_path)
 
-        cmd = "bioconda-recipe-gen %s -n %s -v %s -u %s" % (bioconda_recipes_path, current_recipe.name, current_recipe.version, current_recipe.get("source/url"))
+            cmd = "bioconda-recipe-gen %s -n %s2 -v %s -u %s" % (bioconda_recipes_path, current_recipe.name, current_recipe.version, current_recipe.get("source/url"))
 
-        # add test commmands
-        try:
-            test_commands = " --test-commands "
-            for test_cmd in current_recipe.get("test/commands"):
-                test_commands += test_cmd + " "
-            cmd += test_commands
-        except KeyError as e:
-            print(e)
+            # add test commmands
+            try:
+                test_commands = " --test-commands "
+                for test_cmd in current_recipe.get("test/commands"):
+                    test_commands += "\"%s\" " % test_cmd
+                cmd += test_commands
+            except KeyError as e:
+                print(e)
 
-        print(cmd)
+            # add path to test files
+            try:
+                if current_recipe.get("test/files"):
+                    cmd += " --tests %s/%s" % (recipes_path, cand[0])
+            except KeyError as e:
+                print(e)
+
+            # write to file
+            cmd_file.write(cmd + "\n")
 
 def filter_candidates(candidates):
     """ From the list of candidates run 'bioconda-utils build' with the recipe

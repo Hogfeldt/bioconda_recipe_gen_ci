@@ -1,11 +1,9 @@
 import argparse
 import os
 from bioconda_utils import recipe
-
-# TODO: remove this or refactor to other test folder
-def test_write_candidates_to_file():
-     test_candicates = [("kallisto", None), ("tn93", None)]
-     write_candidates_to_file(test_candicates, "../bioconda_recipe_gen/bioconda-recipes")
+from copy import deepcopy
+from shutil import copy2
+import subprocess
 
 
 def write_candidates_to_file(candidates, bioconda_recipes_path):
@@ -40,13 +38,60 @@ def write_candidates_to_file(candidates, bioconda_recipes_path):
             # write to file
             cmd_file.write(cmd + "\n")
 
-def filter_candidates(candidates):
-    """ From the list of candidates run 'bioconda-utils build' with the recipe
-        from bioconda/recipes.
-        return a list of candidates that builded succesfully
-        """
-    return []
 
+def bioconda_utils_build(package_name, bioconda_recipe_path):
+    """ Build a bioconda package with bioconda-utils and return the standard output
+ 
+    Args:
+    package_name: Name of the package to build
+    """
+    wd = os.getcwd()
+    os.chdir(bioconda_recipe_path)
+    cmd = [
+        "bioconda-utils",
+        "build",
+        "--force",
+        "recipes/",
+        "config.yml",
+        "--packages",
+        package_name,
+    ]
+    proc = subprocess.run(cmd, encoding="utf-8", stdout=subprocess.PIPE)
+    os.chdir(wd)
+    return proc
+ 
+ 
+def mini_sanity_check(recipes_path, name):
+    bioconda_recipe_path = "/".join(recipes_path.split("/")[:-1])
+    proc = bioconda_utils_build(name, bioconda_recipe_path)
+    if proc.returncode == 0:
+        return True
+    else:
+        return False
+ 
+ 
+def increment_build_number(recipes_path, cand_name):
+    meta_yaml_path = "%s/%s/meta.yaml" % (recipes_path, cand_name)
+    current_recipe = recipe.Recipe.from_file(recipes_path, meta_yaml_path)
+    build_number = current_recipe.get("build/number")
+    current_recipe.set("build/number", int(build_number) + 1)
+    current_recipe.save()
+ 
+ 
+def filter_candidates(candidates, recipes_path):
+     """ From the list of candidates run 'bioconda-utils build' with the recipe
+         from bioconda/recipes.
+         return a list of candidates that builded succesfully
+         """
+     filtered_candidates = []
+     for cand in candidates:
+         increment_build_number(recipes_path, cand[0])
+         result = mini_sanity_check(recipes_path, cand[0])
+         if result:
+             filtered_candidates.append(cand)
+ 
+     return filtered_candidates
+ 
 
 def get_packages_containing_cmakelist_in_root(candidates):
     """ From a list of (Name, Source_urls), download and unpack source, then i
@@ -99,5 +144,4 @@ def main():
 
 
 if __name__ == "__main__":
-    #main()
-    test_write_candidates_to_file()
+    main()

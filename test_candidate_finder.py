@@ -2,11 +2,6 @@ import argparse
 import os
 from bioconda_utils import recipe
 
-# TODO: remove this or refactor to other test folder
-def test_write_candidates_to_file():
-     test_candicates = [("kallisto", None), ("tn93", None)]
-     write_candidates_to_file(test_candicates, "../bioconda_recipe_gen/bioconda-recipes")
-
 
 def write_candidates_to_file(candidates, bioconda_recipes_path):
     """ For every candidate extract name, version, source_url, test-commands and
@@ -99,5 +94,4 @@ def main():
 
 
 if __name__ == "__main__":
-    #main()
-    test_write_candidates_to_file()
+    main()

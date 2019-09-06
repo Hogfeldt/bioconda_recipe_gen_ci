@@ -99,7 +99,7 @@ def filter_candidates(candidates, recipes_path):
 
 
 def get_packages_containing_cmakelist_in_root(candidates):
-    """ From a list of (Name, Source_urls), download and unpack source, then i
+    """ From a list of (Name, Source_urls), download and unpack source, then
         check if root of file tree contains a CMakeList.txt.
         Return list of tupple (Name, Source_urls).
         """
@@ -110,22 +110,33 @@ def get_all_source_urls(recipes_path):
     """ Traverse bioconda/recipes and extract the tupple (Name, Source_Url)
         from all packages.
         """
+    print("Fetching packages Name and Source...")
     packages = []
+    num_of_packages = 0
+    num_of_skipped = 0
     for subdir, dirs, files in os.walk(recipes_path):
         for dir in dirs:
+            num_of_packages += 1
+            # Skip Bioconductor or R packages
+            if "bioconductor" in dir or dir.startswith("r-"):
+                num_of_skipped += 1
+                continue
             meta_yaml_path = "%s/%s/meta.yaml" % (recipes_path, dir)
-            print(meta_yaml_path)
-            if not os.path.isfile(meta_yaml_path):
-                continue
-            current_recipe = recipe.Recipe.from_file(recipes_path, meta_yaml_path)
-            name = current_recipe.name
+            # print(meta_yaml_path)
             try:
-                url = current_recipe.get("source/url")
+                if not os.path.isfile(meta_yaml_path):
+                    continue
+                current_recipe = recipe.Recipe.from_file(recipes_path, meta_yaml_path)
+                name = current_recipe.name
+                try:
+                    url = current_recipe.get("source/url")
+                except:
+                    print("%s raised an Error" % name)
+                    continue
+                packages += (name, url)
             except:
-                print("%s raised an Error" % name)
-                continue
-
-            packages += (name, url)
+                print("%s raised an Error" % dir)
+    print("%d out of %d packages where skipped" % (num_of_skipped, num_of_packages))
     return packages
 
 
@@ -140,12 +151,9 @@ def main():
     # Run workflow
     recipes_path = args.recipes_path
     packages = get_all_source_urls(recipes_path)
-    for package in packages:
-        print(package)
     candidates = get_packages_containing_cmakelist_in_root(packages)
-    candidates = filter_candidates(candidates)
-    write_candidates_to_file(candidates, "file_path")
-    pass
+    # candidates = filter_candidates(candidates)
+    # write_candidates_to_file(candidates, "file_path")
 
 
 if __name__ == "__main__":

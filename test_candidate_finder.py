@@ -17,13 +17,18 @@ def write_candidates_to_file(candidates, bioconda_recipes_path):
             meta_yaml_path = "%s/%s/meta.yaml" % (recipes_path, cand[0])
             current_recipe = recipe.Recipe.from_file(recipes_path, meta_yaml_path)
 
-            cmd = "bioconda-recipe-gen %s -n %s2 -v %s -u %s" % (bioconda_recipes_path, current_recipe.name, current_recipe.version, current_recipe.get("source/url"))
+            cmd = "bioconda-recipe-gen %s -n %s2 -v %s -u %s" % (
+                bioconda_recipes_path,
+                current_recipe.name,
+                current_recipe.version,
+                current_recipe.get("source/url"),
+            )
 
             # add test commmands
             try:
                 test_commands = " --test-commands "
                 for test_cmd in current_recipe.get("test/commands"):
-                    test_commands += "\"%s\" " % test_cmd
+                    test_commands += '"%s" ' % test_cmd
                 cmd += test_commands
             except KeyError as e:
                 print(e)
@@ -59,8 +64,8 @@ def bioconda_utils_build(package_name, bioconda_recipe_path):
     proc = subprocess.run(cmd, encoding="utf-8", stdout=subprocess.PIPE)
     os.chdir(wd)
     return proc
- 
- 
+
+
 def mini_sanity_check(recipes_path, name):
     bioconda_recipe_path = "/".join(recipes_path.split("/")[:-1])
     proc = bioconda_utils_build(name, bioconda_recipe_path)
@@ -68,30 +73,30 @@ def mini_sanity_check(recipes_path, name):
         return True
     else:
         return False
- 
- 
+
+
 def increment_build_number(recipes_path, cand_name):
     meta_yaml_path = "%s/%s/meta.yaml" % (recipes_path, cand_name)
     current_recipe = recipe.Recipe.from_file(recipes_path, meta_yaml_path)
     build_number = current_recipe.get("build/number")
     current_recipe.set("build/number", int(build_number) + 1)
     current_recipe.save()
- 
- 
+
+
 def filter_candidates(candidates, recipes_path):
-     """ From the list of candidates run 'bioconda-utils build' with the recipe
+    """ From the list of candidates run 'bioconda-utils build' with the recipe
          from bioconda/recipes.
          return a list of candidates that builded succesfully
          """
-     filtered_candidates = []
-     for cand in candidates:
-         increment_build_number(recipes_path, cand[0])
-         result = mini_sanity_check(recipes_path, cand[0])
-         if result:
-             filtered_candidates.append(cand)
- 
-     return filtered_candidates
- 
+    filtered_candidates = []
+    for cand in candidates:
+        increment_build_number(recipes_path, cand[0])
+        result = mini_sanity_check(recipes_path, cand[0])
+        if result:
+            filtered_candidates.append(cand)
+
+    return filtered_candidates
+
 
 def get_packages_containing_cmakelist_in_root(candidates):
     """ From a list of (Name, Source_urls), download and unpack source, then i
@@ -115,9 +120,9 @@ def get_all_source_urls(recipes_path):
             current_recipe = recipe.Recipe.from_file(recipes_path, meta_yaml_path)
             name = current_recipe.name
             try:
-                url = current_recipe.get('source/url')
+                url = current_recipe.get("source/url")
             except:
-                print('%s raised an Error' % name)
+                print("%s raised an Error" % name)
                 continue
 
             packages += (name, url)

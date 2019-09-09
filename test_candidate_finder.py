@@ -4,6 +4,7 @@ from bioconda_utils import recipe
 from copy import deepcopy
 from shutil import copy2
 import subprocess
+from bioconda_recipe_gen import build
 
 
 def write_candidates_to_file(candidates, bioconda_recipes_path):
@@ -35,8 +36,10 @@ def write_candidates_to_file(candidates, bioconda_recipes_path):
 
             # add path to test files
             try:
-                if current_recipe.get("test/files"):
-                    cmd += " --tests %s/%s" % (recipes_path, cand[0])
+                test_files = " --test-files "
+                for test_file in current_recipe.get("test/files"):
+                    test_files += "\"%s\" " % test_file 
+                cmd += test_files
             except KeyError as e:
                 print(e)
 
@@ -44,31 +47,9 @@ def write_candidates_to_file(candidates, bioconda_recipes_path):
             cmd_file.write(cmd + "\n")
 
 
-def bioconda_utils_build(package_name, bioconda_recipe_path):
-    """ Build a bioconda package with bioconda-utils and return the standard output
- 
-    Args:
-    package_name: Name of the package to build
-    """
-    wd = os.getcwd()
-    os.chdir(bioconda_recipe_path)
-    cmd = [
-        "bioconda-utils",
-        "build",
-        "--force",
-        "recipes/",
-        "config.yml",
-        "--packages",
-        package_name,
-    ]
-    proc = subprocess.run(cmd, encoding="utf-8", stdout=subprocess.PIPE)
-    os.chdir(wd)
-    return proc
-
-
 def mini_sanity_check(recipes_path, name):
     bioconda_recipe_path = "/".join(recipes_path.split("/")[:-1])
-    proc = bioconda_utils_build(name, bioconda_recipe_path)
+    proc = build.bioconda_utils_build(name, bioconda_recipe_path)
     if proc.returncode == 0:
         return True
     else:

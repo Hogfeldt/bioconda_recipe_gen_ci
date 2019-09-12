@@ -1,9 +1,12 @@
 import argparse
 import os
-from bioconda_utils import recipe
 from copy import deepcopy
 from shutil import copy2
 import subprocess
+from bioconda_utils import recipe
+import urllib.request
+import zipfile
+import tarfile
 
 
 def write_candidates_to_file(candidates, bioconda_recipes_path):
@@ -98,12 +101,33 @@ def filter_candidates(candidates, recipes_path):
     return filtered_candidates
 
 
+def download_and_unpack_source(src, dir_path):
+    """ Download a source file and unpack it """
+    if src.lower().endswith(".tar.gz"):
+        # TODO: Handle exceptions
+        urllib.request.urlretrieve(src, "%s/source.tar.gz" % dir_path)
+        os.mkdir("%s/source" % dir_path)
+        with tarfile.open("%s/source.tar.gz" % dir_path, "r:gz") as tar_ref:
+            tar_ref.extractall("%s/source" % dir_path)
+    elif src.lower().endswith(".zip"):
+        # TODO: Handle exceptions
+        urllib.request.urlretrieve(src, "%s/source.zip" % dir_path)
+        os.mkdir("%s/source" % dir_path)
+        with zipfile.ZipFile("%s/source.zip" % dir_path, "r") as zip_ref:
+            zip_ref.extractall("%s/source" % dir_path)
+    else:
+        print("Unknown fileformat! Cannot unpack %s" % src)
+
+
 def get_packages_containing_cmakelist_in_root(candidates):
     """ From a list of (Name, Source_urls), download and unpack source, then
         check if root of file tree contains a CMakeList.txt.
         Return list of tupple (Name, Source_urls).
         """
-    return []
+    filtered_candidates = []
+    for package in candidates:
+        pass
+    return filteried_candidates
 
 
 def get_all_source_urls(recipes_path):
@@ -114,28 +138,27 @@ def get_all_source_urls(recipes_path):
     packages = []
     num_of_packages = 0
     num_of_skipped = 0
-    for subdir, dirs, files in os.walk(recipes_path):
-        for dir in dirs:
-            num_of_packages += 1
-            # Skip Bioconductor or R packages
-            if "bioconductor" in dir or dir.startswith("r-"):
-                num_of_skipped += 1
+    dirs = next(os.walk(recipes_path))[1] 
+    for dir in dirs:
+        num_of_packages += 1
+        # Skip Bioconductor or R packages
+        if "bioconductor" in dir or dir.startswith("r-"):
+            num_of_skipped += 1
+            continue
+        meta_yaml_path = "%s/%s/meta.yaml" % (recipes_path, dir)
+        try:
+            if not os.path.isfile(meta_yaml_path):
                 continue
-            meta_yaml_path = "%s/%s/meta.yaml" % (recipes_path, dir)
-            # print(meta_yaml_path)
+            current_recipe = recipe.Recipe.from_file(recipes_path, meta_yaml_path)
+            name = current_recipe.name
             try:
-                if not os.path.isfile(meta_yaml_path):
-                    continue
-                current_recipe = recipe.Recipe.from_file(recipes_path, meta_yaml_path)
-                name = current_recipe.name
-                try:
-                    url = current_recipe.get("source/url")
-                except:
-                    print("%s raised an Error" % name)
-                    continue
-                packages += (name, url)
+                url = current_recipe.get("source/url")
             except:
-                print("%s raised an Error" % dir)
+                print("%s raised an Error" % name)
+                continue
+            packages += (name, url)
+        except:
+            print("%s raised an Error" % dir)
     print("%d out of %d packages where skipped" % (num_of_skipped, num_of_packages))
     return packages
 

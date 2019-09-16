@@ -68,7 +68,6 @@ def retrive_packages_changed(recipes_path):
                 num_of_errors += 1
                 continue
             packages.update({name: url})
-            print(packages)
         except:
             print("%s raised an Error" % dir)
             num_of_errors += 1

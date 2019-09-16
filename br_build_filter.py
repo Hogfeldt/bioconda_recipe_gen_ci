@@ -48,7 +48,7 @@ def filter_candidates(recipes_path):
             filtered_candidates[cand_name] = candidates.get(cand_name)
 
     with PackageDBResource(BR_BUILD_FILTERED_PACKAGES_DB_PATH) as packageDB:
-        candidates = packageDB.add_new_packages(filtered_candidates)
+        packageDB.add_new_packages(filtered_candidates)
 
 
 def main():

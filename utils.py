@@ -7,5 +7,5 @@ def get_brg_ci_homedir_path():
     if isdir(CI_HOMEDIR):
         return CI_HOMEDIR
     else:
-        os.mkdir(CI_HOMEDIR)
+        mkdir(CI_HOMEDIR)
         return CI_HOMEDIR

@@ -1,6 +1,7 @@
 import fcntl
 from ruamel_yaml import YAML
 import hashlib
+from os.path import isfile
 
 
 class PackageDBResource:
@@ -41,9 +42,15 @@ class PackageDBResource:
             """
 
             def __init__(self, DB_path):
-                self._fp = open(DB_path, "r+")
-                fcntl.lockf(self._fp, fcntl.LOCK_EX)
-                self.__load_packages()
+                if isfile(DB_path):
+                    self._fp = open(DB_path, "r+")
+                    fcntl.lockf(self._fp, fcntl.LOCK_EX)
+                    self.__load_packages()
+                else:
+                    self._fp = open(DB_path, "w")
+                    fcntl.lockf(self._fp, fcntl.LOCK_EX)
+                    self._sha = ""
+                    self._packages = dict()
 
             def __load_packages(self):
                 yaml_dict = YAML().load(self._fp)

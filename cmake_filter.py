@@ -93,7 +93,7 @@ def filter_out_packages_without_cmakelist():
                     filtere_packages.update({name : source})
                     print('Added package: ' +name+ " "+source)
     with PackageDBResource(PACKAGES_FILTERED_ON_CMAKE) as packageDB:
-        filtere_packagesageDB.add_new_packages(filtere_packages)
+        packageDB.add_new_packages(filtere_packages)
     print(filtere_packages)
 
 

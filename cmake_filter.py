@@ -17,6 +17,12 @@ BUILD_FILES = ['cmakelists.txt', 'setup.py']
 def download_and_unpack_source(src, dir_path):
     """ Download a source file and unpack it """
     try:
+        # .tar
+        if src.lower().endswith(".tar"):
+            urllib.request.urlretrieve(src, "%s/source.tar" % dir_path)
+            os.mkdir("%s/source" % dir_path)
+            with tarfile.open("%s/source.tar" % dir_path) as tar_ref:
+                tar_ref.extractall("%s/source" % dir_path)
         # .tar.gz
         if src.lower().endswith(".tar.gz"):
             urllib.request.urlretrieve(src, "%s/source.tar.gz" % dir_path)

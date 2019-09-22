@@ -3,6 +3,7 @@ import os
 import tempfile
 import tarfile
 import zipfile
+import sys
 
 from packagedb import PackageDBResource
 from utils import get_brg_ci_homedir_path
@@ -10,6 +11,8 @@ from utils import get_brg_ci_homedir_path
 CI_HOMEDIR = get_brg_ci_homedir_path()
 PACKAGE_CHANGED_DB_PATH = CI_HOMEDIR + "/packages_changed.yaml"
 PACKAGES_FILTERED_ON_CMAKE = CI_HOMEDIR + "/cmake_packages.yaml"
+
+BUILD_FILES = ['cmakelists.txt', 'setup.py']
 
 def download_and_unpack_source(src, dir_path):
     """ Download a source file and unpack it """
@@ -52,6 +55,17 @@ def download_and_unpack_source(src, dir_path):
     except:
         print("Unexpected error:", sys.exc_info()[0])
 
+def find_build_files(path):
+    files_of_interest = []
+    for root, dirs, files in os.walk(path):
+        for f in files:
+            f.lower()
+        for f in files:
+            if f in BUILD_FILES:
+                files_of_interest.extend(os.path.join(root,f))
+    return files_of_interest
+    
+
 def filter_out_packages_without_cmakelist():
     """ From a list of (Name, Source_urls), download and unpack source, then
         check if root of file tree contains a CMakeList.txt.
@@ -67,14 +81,13 @@ def filter_out_packages_without_cmakelist():
     for name, source in packages_to_filter.items():
         with tempfile.TemporaryDirectory() as tmpdir:
             download_and_unpack_source(source, tmpdir)
-            if os.path.isdir(tmpdir+'/source'):
-                _, dirs, _ = next(os.walk(tmpdir+'/source'))
-                _, _, files = next(os.walk(tmpdir+'/source/' + dirs[0]))
-                for file in list(map(lambda s: s.lower(), files)):
-                    if "cmakelists.txt" in file:
-                        filtere_packages.update({name : source})
+            files_of_interest = find_build_files(os.path.join(tmpdir, 'source'))
+            for file in files_of_interest:
+                if 'cmakelists.txt' in file:
+                    filtere_packages.update({name : source})
+                    print('Added package: ' +name+ " "+source)
     with PackageDBResource(PACKAGES_FILTERED_ON_CMAKE) as packageDB:
-        packageDB.add_new_packages(filtere_packages)
+        filtere_packagesageDB.add_new_packages(filtere_packages)
     print(filtere_packages)
 
 

@@ -29,7 +29,7 @@ def write_candidates_to_file(recipes_path):
         candidates = packageDB.get_new_packages()
 
     if candidates == None:
-        print("No new packages to filter")
+        print("No new packages to handle")
         return
     
     packages_and_commands = {}

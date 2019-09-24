@@ -48,7 +48,7 @@ def write_pkg_to_batch_outputs(pkg_name, date_str, output):
     copy2(recipe_path, pkg_path)
     copy2(build_path, pkg_path)
     with open(output_path, "w") as out_file:
-        out_file.write(output.decode('utf-8'))
+        out_file.write(output.decode("utf-8"))
 
 
 def run_buildtest():
@@ -58,17 +58,18 @@ def run_buildtest():
     if candidates is None:
         print("No new packages to build")
         return
-
+    
+    did_build_counter = 0
     current_datetime = datetime.now()
     date_str = "%s.%s.%s" % (current_datetime.day, current_datetime.month, current_datetime.year)
     build_status_dict = dict()
     for cand_name, cand_cmd in candidates.items():
         process = subprocess.Popen(cand_cmd, stdout=subprocess.PIPE, shell=True)
-        output, error = process.communicate()
+        output, _ = process.communicate()
 
-        error = None
-        if error is None:
+        if process.returncode == 0:
             did_build = True
+            did_build_counter += 1
         else:
             did_build = False
 
@@ -80,7 +81,7 @@ def run_buildtest():
         rmtree(cand_name)
 
     write_to_global_results(build_status_dict)
-
+    print("Could build %s/%s" % (did_build_counter, len(candidates)))
 
 if __name__ == "__main__":
     run_buildtest()

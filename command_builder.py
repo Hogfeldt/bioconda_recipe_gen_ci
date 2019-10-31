@@ -29,7 +29,7 @@ def write_candidates_to_file(recipes_path):
         candidates = packageDB.get_new_packages()
 
     if candidates == None:
-        print("No new packages to filter")
+        print("No new packages to handle")
         return
     
     packages_and_commands = {}
@@ -40,7 +40,7 @@ def write_candidates_to_file(recipes_path):
 
         cmd = "bioconda-recipe-gen %s -n %s2 -v %s -u %s" % (
             bioconda_recipes_path,
-            current_recipe.name,
+            cand_name,
             current_recipe.version,
             current_recipe.get("source/url"),
         )

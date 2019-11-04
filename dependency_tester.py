@@ -37,7 +37,6 @@ def run_test(recipes_path):
 
             lines_to_write = []
             in_requirements_section = False
-            #            in_build_section = False
             for line in meta_lines:
                 if in_requirements_section:
                     if line[0].isspace():
@@ -45,26 +44,25 @@ def run_test(recipes_path):
                     else:
                         in_requirements_section = False
                         lines_to_write.append(line)
-                #                elif in_build_section:
-                #                    if "number" in line:
-                #                        lines_to_write.append(line[:-2] + "1000000" + "\n")
-                #                    else:
-                #                        if not line[0].isspace():
-                #                            in_build_section = False
-                #                        lines_to_write.append(line)
                 else:
                     if "requirements" in line:
                         in_requirements_section = True
                         continue
-                    #                    elif "build" in line:
-                    #                        in_build_section = True
                     lines_to_write.append(line)
 
             with open(os.path.join(recipe_path, "meta.yaml"), "w") as fp:
                 fp.writelines(lines_to_write)
 
+            path_elements = []
+            for e in recipes_path.split('/'):
+                path_elements.append(e)
+                if e == "bioconda-recipes":
+                    break
+            bioconda_recipes_path = '/'.join(path_elements)
+            print(bioconda_recipes_path)
+
             brg_command = "bioconda-recipe-gen %s from-files %s" % (
-                "/".join(recipes_path.split("/")[:-2]),
+                bioconda_recipes_path,
                 recipe_path,
             )
             process = subprocess.Popen(

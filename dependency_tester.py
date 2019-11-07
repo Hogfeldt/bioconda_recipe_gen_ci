@@ -38,6 +38,8 @@ def run_test(recipes_path):
             lines_to_write = []
             in_requirements_section = False
             for line in meta_lines:
+                if "[osx]" in line:
+                    continue
                 if in_requirements_section:
                     if line[0].isspace():
                         continue

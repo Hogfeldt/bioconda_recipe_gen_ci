@@ -30,10 +30,6 @@ packages:
 ```
 - (Optional) Path to where the output file should be placed
 
-If you don't give the optional flags, the program will save it in a folder, 
-that it creates, called .bri_ci. This is used for when running all scripts 
-together as a pipeline.
-
 The output file has the same format as the input yaml file, 
 but does only contain the packages that can be built with bioconda-utils.
 
@@ -42,13 +38,30 @@ This script takes two arguments:
 - (Required) Path to the `bioconda-recipe/recipes` folder
 - (Optional) Path to the output file from running `br_build_filter.py`
 
-Same thing applies here for the optional flag as above.
-
 This script runs `bioconda-recipe-gen` on all the packages in the input file.
 The output is saved in a folder called `test_result` that will be created in 
 the current working directory.
 
-# Other scripts
-TODO
+## General info about the two scrips
+If you don't give the optional flags, the program will load/save in a folder, 
+that it creates, called .bri_ci. This is used for when running all scripts 
+together as a pipeline.
 
+Since the 'full' pipeline was designed to only work if the previous step has
+changed, you will need to manually make sure that the SHA in each file gets changed
+(just remove it) if you want to run on the same input twice. Otherwise, the script will
+just output that it found no changes to process.
+
+# Other scripts
+The other scripts doesn't allow for the optional flags. They assume they are being
+run after each other (in the order described earlier).
+Here is a short description of the scrips:
+- git_differ: is used to see if there are any new packages on bioconda-recipes that
+needs to be built
+- cmake_filter: takes the output from git_differ as input and returns a list 
+of packages that make use of cmake. (Note: we don't have a python_filter yet, but
+that would be a good PR)
+- command_builder: first part in the alternative to dependency_tester. Creates a list
+of commands that can be used as input to brg_buildtest
+- brg_buildtest: does the same as dependecy_parser, but takes another input
 

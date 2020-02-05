@@ -8,8 +8,7 @@ from bioconda_recipe_gen import build
 
 
 CI_HOMEDIR = get_brg_ci_homedir_path()
-#CMAKE_PACKAGES_DB_PATH = CI_HOMEDIR + "/small_python_cands.yaml"
-CMAKE_PACKAGES_DB_PATH = CI_HOMEDIR + "/cmake_packages.yaml" # TODO: more general name
+CMAKE_PACKAGES_DB_PATH = CI_HOMEDIR + "/cmake_packages.yaml"
 BR_BUILD_FILTERED_PACKAGES_DB_PATH = CI_HOMEDIR + "/br_build_filtered.yaml"
 
 
@@ -66,7 +65,23 @@ def main():
         "recipes_path",
         help="The path to the bioconda-recipe/recipes directory"
     )
+    parser.add_argument(
+        "--input",
+        help="Path to a yaml file with packages to filter"
+    )
+    parser.add_argument(
+        "--output",
+        help="Path where the output yaml file should be placed"
+    )
     args = parser.parse_args()
+
+    if args.input is not None:
+        global CMAKE_PACKAGES_DB_PATH
+        CMAKE_PACKAGES_DB_PATH = args.input
+    if args.output is not None:
+        global BR_BUILD_FILTERED_PACKAGES_DB_PATH
+        BR_BUILD_FILTERED_PACKAGES_DB_PATH = args.output
+
     filter_candidates(args.recipes_path)
 
 

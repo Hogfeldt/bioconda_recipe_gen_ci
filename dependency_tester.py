@@ -63,7 +63,7 @@ def run_test(recipes_path):
             bioconda_recipes_path = '/'.join(path_elements)
             print(bioconda_recipes_path)
 
-            brg_command = "bioconda-recipe-gen %s from-files %s --strategy python3" % (
+            brg_command = "yes | bioconda-recipe-gen %s from-files %s --strategy python3" % (
                 bioconda_recipes_path,
                 recipe_path,
             )
@@ -88,9 +88,19 @@ def main():
         description="The purpose of this test is to get a measurment on how good BRG is to find dependencies. The method will be to use the build.sh from bioconda-recipe and then give a meta.yaml where we remove the requirements"
     )
     parser.add_argument(
-        "recipes_path", help="The path to the bioconda-recipe/recipes directory"
+        "recipes_path",
+        help="The path to the bioconda-recipe/recipes directory"
+    )
+    parser.add_argument(
+        "--input",
+        help="Path to the output file from running `br_build_filter.py`"
     )
     args = parser.parse_args()
+
+    if args.input is not None:
+        global BR_BUILD_FILTERED_PACKAGES_DB_PATH
+        BR_BUILD_FILTERED_PACKAGES_DB_PATH = args.input
+
     run_test(args.recipes_path)
 
 

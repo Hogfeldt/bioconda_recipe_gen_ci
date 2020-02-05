@@ -1,5 +1,6 @@
 import argparse
 from bioconda_utils import recipe
+from os.path import join
 
 from packagedb import PackageDBResource
 from utils import get_brg_ci_homedir_path
@@ -7,7 +8,7 @@ from bioconda_recipe_gen import build
 
 
 CI_HOMEDIR = get_brg_ci_homedir_path()
-CMAKE_PACKAGES_DB_PATH = CI_HOMEDIR + "/cmake_packages.yaml"
+CMAKE_PACKAGES_DB_PATH = CI_HOMEDIR + "/small_python_cands.yaml"
 BR_BUILD_FILTERED_PACKAGES_DB_PATH = CI_HOMEDIR + "/br_build_filtered.yaml"
 
 
@@ -40,8 +41,14 @@ def filter_candidates(recipes_path):
         print("No new packages to filter")
         return
 
+    blacklisted = {}
+    with open(join(recipes_path, "../build-fail-blacklist")) as fp:
+        blacklisted = set(map(lambda l:l[len('recipes/'):], filter(lambda l:l != "", [l.replace('\n','').strip() for l in fp.readlines() if not l.startswith("#")])))
+
     filtered_candidates = {} 
     for cand_name in candidates.keys():
+        if cand_name in blacklisted:
+            continue
         increment_build_number(recipes_path, cand_name)
         result = mini_sanity_check(recipes_path, cand_name)
         if result:

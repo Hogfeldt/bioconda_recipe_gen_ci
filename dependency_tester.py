@@ -63,7 +63,7 @@ def run_test(recipes_path):
             bioconda_recipes_path = '/'.join(path_elements)
             print(bioconda_recipes_path)
 
-            brg_command = "bioconda-recipe-gen %s from-files %s" % (
+            brg_command = "bioconda-recipe-gen %s from-files %s --strategy python3" % (
                 bioconda_recipes_path,
                 recipe_path,
             )

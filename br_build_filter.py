@@ -44,12 +44,16 @@ def filter_candidates(recipes_path):
     with open(join(recipes_path, "../build-fail-blacklist")) as fp:
         blacklisted = set(map(lambda l:l[len('recipes/'):], filter(lambda l:l != "", [l.replace('\n','').strip() for l in fp.readlines() if not l.startswith("#")])))
 
-    filtered_candidates = {} 
+    filtered_candidates = {}
     for cand_name in candidates.keys():
         if cand_name in blacklisted:
             continue
         increment_build_number(recipes_path, cand_name)
-        result = mini_sanity_check(recipes_path, cand_name)
+        try:
+            result = mini_sanity_check(recipes_path, cand_name)
+        except Exception as e:
+            print("Error when running mini_sanity_check on {}. Getting the following error: {}".format(cand_name, e))
+            continue
         if result:
             filtered_candidates[cand_name] = candidates.get(cand_name)
 
@@ -59,7 +63,7 @@ def filter_candidates(recipes_path):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="The br-build-filter module takes a path to the Bioconda-recipe recipes folder and create a list of packages from cmake_packages.yaml and writes, all the packages that could build with bioconda-utils build, into the file packages_to_be_tested.yaml" 
+        description="The br-build-filter module takes a path to the Bioconda-recipe recipes folder and create a list of packages from cmake_packages.yaml and writes, all the packages that could build with bioconda-utils build, into the file packages_to_be_tested.yaml"
     )
     parser.add_argument(
         "recipes_path",

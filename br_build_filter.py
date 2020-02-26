@@ -48,8 +48,8 @@ def filter_candidates(recipes_path):
     for cand_name in candidates.keys():
         if cand_name in blacklisted:
             continue
-        increment_build_number(recipes_path, cand_name)
         try:
+            increment_build_number(recipes_path, cand_name)
             result = mini_sanity_check(recipes_path, cand_name)
         except Exception as e:
             print("Error when running mini_sanity_check on {}. Getting the following error: {}".format(cand_name, e))

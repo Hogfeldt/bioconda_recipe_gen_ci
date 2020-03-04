@@ -1,10 +1,14 @@
 import argparse
+import os
+import signal
+import subprocess
+
 from bioconda_utils import recipe
 from os.path import join
 
 from packagedb import PackageDBResource
 from utils import get_brg_ci_homedir_path
-from bioconda_recipe_gen import build
+#from bioconda_recipe_gen import build
 
 
 CI_HOMEDIR = get_brg_ci_homedir_path()
@@ -12,12 +16,37 @@ CMAKE_PACKAGES_DB_PATH = CI_HOMEDIR + "/cmake_packages.yaml"
 BR_BUILD_FILTERED_PACKAGES_DB_PATH = CI_HOMEDIR + "/br_build_filtered.yaml"
 
 
+def bioconda_utils_build(package_name, bioconda_recipe_path):
+    """ Build a bioconda package with bioconda-utils and return the standard output. """
+    wd = os.getcwd()
+    os.chdir(bioconda_recipe_path)
+    cmd = [
+        "bioconda-utils",
+        "build",
+        "recipes/",
+        "config.yml",
+        "--packages",
+        package_name,
+    ]
+    proc = subprocess.Popen(cmd, encoding="utf-8", stdout=subprocess.PIPE)
+    try:
+        proc.communicate(timeout=3600)
+    except subprocess.TimeoutExpired:
+        print("ERROR: REACHED TIMEOUT")
+        proc.kill()
+
+    os.chdir(wd)
+    return proc
+
+
 def mini_sanity_check(recipes_path, name):
     bioconda_recipe_path = "/".join(recipes_path.split("/")[:-1])
-    proc = build.bioconda_utils_build(name, bioconda_recipe_path)
+    proc = bioconda_utils_build(name, bioconda_recipe_path)
     if proc.returncode == 0:
+        print("Package builded successfully")
         return True
     else:
+        print("Package did not build")
         return False
 
 
@@ -37,28 +66,26 @@ def filter_candidates(recipes_path):
     with PackageDBResource(CMAKE_PACKAGES_DB_PATH) as packageDB:
         candidates = packageDB.get_new_packages()
 
-    if candidates == None:
+    if candidates is None:
         print("No new packages to filter")
         return
 
     with open(join(recipes_path, "../build-fail-blacklist")) as fp:
         blacklisted = set(map(lambda l:l[len('recipes/'):], filter(lambda l:l != "", [l.replace('\n','').strip() for l in fp.readlines() if not l.startswith("#")])))
 
-    filtered_candidates = {}
-    for cand_name in candidates.keys():
-        if cand_name in blacklisted:
-            continue
-        increment_build_number(recipes_path, cand_name)
-        try:
-            result = mini_sanity_check(recipes_path, cand_name)
-        except Exception as e:
-            print("Error when running mini_sanity_check on {}. Getting the following error: {}".format(cand_name, e))
-            continue
-        if result:
-            filtered_candidates[cand_name] = candidates.get(cand_name)
-
     with PackageDBResource(BR_BUILD_FILTERED_PACKAGES_DB_PATH) as packageDB:
-        packageDB.add_new_packages(filtered_candidates)
+        for cand_name in candidates.keys():
+            if cand_name in blacklisted:
+                continue
+            try:
+                print("Trying to build:", cand_name)
+                increment_build_number(recipes_path, cand_name)
+                result = mini_sanity_check(recipes_path, cand_name)
+            except Exception as e:
+                print("Error when running mini_sanity_check on {}. Getting the following error: {}".format(cand_name, e))
+                continue
+            if result:
+                packageDB.write_single_package_to_file(cand_name, candidates.get(cand_name))
 
 
 def main():

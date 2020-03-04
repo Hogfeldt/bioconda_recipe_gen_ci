@@ -94,6 +94,10 @@ class PackageDBResource:
                 else:
                     self.__append_and_update(new_packages)
 
+            def write_single_package_to_file(self, package_name, package_url):
+                self._packages[package_name] = package_url
+                self.__write_packageDB_to_file()
+
         self.packageDB_obj = PackageDB(self.DB_path)
         return self.packageDB_obj
 

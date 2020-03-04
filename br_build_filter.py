@@ -1,6 +1,5 @@
 import argparse
 import os
-import signal
 import subprocess
 
 from bioconda_utils import recipe
@@ -8,7 +7,6 @@ from os.path import join
 
 from packagedb import PackageDBResource
 from utils import get_brg_ci_homedir_path
-#from bioconda_recipe_gen import build
 
 
 CI_HOMEDIR = get_brg_ci_homedir_path()
